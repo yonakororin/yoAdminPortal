@@ -340,6 +340,7 @@
         
         document.addEventListener('DOMContentLoaded', init);
     </script>
+    <script>window.currentUser = "<?= isset($_SESSION['user']) ? htmlspecialchars($_SESSION['user']) : '' ?>";</script>
     <script src="../shared/theme.js"></script>
 </body>
 </html>
