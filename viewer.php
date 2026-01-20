@@ -279,7 +279,13 @@
                 const card = document.createElement('a');
                 card.className = 'link-card';
                 card.href = link.url || '#';
-                card.target = '_blank';
+                
+                // Use a derived target name to reuse existing tabs
+                // Hash the URL to create a unique but consistent target name
+                // Simple hash function for target name
+                const targetName = 'yoPortal_' + (link.url || '').replace(/[^a-zA-Z0-9]/g, '');
+                card.target = targetName;
+                
                 card.innerHTML = `
                     <i class="fa-solid ${link.icon || 'fa-link'} icon"></i>
                     <span class="label">${link.label || 'Link'}</span>
