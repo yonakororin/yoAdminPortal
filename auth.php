@@ -17,9 +17,10 @@ $base_url = get_current_base_url();
 
 // 1. Check if already logged in (unified session key 'user')
 if (!isset($_SESSION['user'])) {
-    // Redirect to SSO
+    // Redirect to SSO with app name
     $redirect_uri = urlencode("$base_url/callback.php");
-    header("Location: $sso_url?redirect_uri=$redirect_uri");
+    $app_name = urlencode("Portal");
+    header("Location: $sso_url?redirect_uri=$redirect_uri&app_name=$app_name");
     exit;
 }
 
@@ -30,7 +31,8 @@ if (isset($_SESSION['login_time'])) {
         // Session expired
         session_destroy();
         $redirect_uri = urlencode("$base_url/callback.php");
-        header("Location: $sso_url?redirect_uri=$redirect_uri");
+        $app_name = urlencode("Portal");
+        header("Location: $sso_url?redirect_uri=$redirect_uri&app_name=$app_name");
         exit;
     }
 } else {

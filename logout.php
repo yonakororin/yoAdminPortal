@@ -12,6 +12,7 @@ $base_url = $protocol . $host . $path;
 
 // Redirect to SSO login with this app as the redirect target
 $redirect_uri = urlencode("$base_url/callback.php");
-header("Location: ../yoSSO/?redirect_uri=$redirect_uri");
+$app_name = urlencode("Portal");
+header("Location: ../yoSSO/?redirect_uri=$redirect_uri&app_name=$app_name");
 exit;
 ?>

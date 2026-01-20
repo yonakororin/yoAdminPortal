@@ -145,10 +145,25 @@ main {
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    cursor: pointer;
+    cursor: grab;
+}
+
+.link-card:active {
+    cursor: grabbing;
     transition: all 0.2s;
     position: relative;
     padding: 1rem;
+}
+
+.link-card.dragging {
+    opacity: 0.4;
+    border-style: dashed;
+    border-color: var(--primary);
+}
+
+.link-card.drag-over {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 2px var(--primary);
 }
 
 .link-card:hover {
@@ -158,6 +173,12 @@ main {
 
 .link-card.filled {
     border-style: solid;
+}
+
+.link-card .icon,
+.link-card .label {
+    pointer-events: none;
+    user-select: none;
 }
 
 .link-card .icon {

@@ -96,6 +96,7 @@ const commonIcons = [
 ];
 
 let editingIndex = null;
+let draggedIndex = null;
 
 // ============================================================
 // INITIALIZATION
@@ -179,6 +180,9 @@ function renderGrid() {
 function createLinkCard(link, index) {
     const card = document.createElement('div');
     card.className = 'link-card filled';
+    card.draggable = true; // Enable dragging
+    card.dataset.index = index;
+
     card.innerHTML = `
         <div class="card-actions">
             <button class="edit" title="Edit"><i class="fa-solid fa-pen"></i></button>
@@ -187,6 +191,72 @@ function createLinkCard(link, index) {
         <i class="fa-solid ${link.icon || 'fa-link'} icon"></i>
         <span class="label">${link.label || 'Link'}</span>
     `;
+
+    // --- Drag and Drop Handlers ---
+    // --- Drag and Drop Handlers ---
+    card.addEventListener('dragstart', (e) => {
+        draggedIndex = index;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', index);
+        // Delay adding class so the drag image is taken from the normal state
+        setTimeout(() => card.classList.add('dragging'), 0);
+    });
+
+    card.addEventListener('dragend', () => {
+        card.classList.remove('dragging');
+        document.querySelectorAll('.link-card').forEach(c => c.classList.remove('drag-over'));
+        draggedIndex = null;
+    });
+
+    card.addEventListener('dragover', (e) => {
+        e.preventDefault(); // Necessary to allow dropping
+        e.dataTransfer.dropEffect = 'move';
+        if (draggedIndex !== index) {
+            card.classList.add('drag-over');
+        }
+    });
+
+    card.addEventListener('dragleave', (e) => {
+        // Prevent flickering when moving over child elements
+        if (card.contains(e.relatedTarget)) return;
+        card.classList.remove('drag-over');
+    });
+
+    card.addEventListener('drop', (e) => {
+        e.preventDefault();
+        card.classList.remove('drag-over');
+
+        // Ensure index types match (though strict equality with null handles initialization)
+        if (draggedIndex === null || draggedIndex === index) return;
+
+        // Perform reordering
+        const movedItem = state.links[draggedIndex];
+
+        // Remove from old position
+        state.links.splice(draggedIndex, 1);
+
+        // Calculate new index adjusting for removal if moving down
+        // If draggedIndex < index, the target index shifts down by 1 after removal
+        // However, 'index' is the original index of the Drop Target.
+        // Example: [A, B, C], Move A(0) to C(2). Remove A -> [B, C]. C is now at 1.
+        // If we want to insert 'After' C (originally 2, now 1), we insert at 2.
+        // If we want to insert 'Before' C (originally 2, now 1), we insert at 1.
+        // Let's stick to "Insert Before Target" relative to the view
+        let insertAt = index;
+        if (draggedIndex < index) {
+            insertAt = index - 1;
+        }
+
+        // Boundary check
+        if (insertAt < 0) insertAt = 0;
+
+        state.links.splice(insertAt, 0, movedItem);
+
+        renderGrid();
+        // Optional: Auto-save or wait for user to click save
+    });
+    // ------------------------------
+    // ------------------------------
 
     card.querySelector('.edit').onclick = (e) => {
         e.stopPropagation();
