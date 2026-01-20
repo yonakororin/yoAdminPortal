@@ -275,7 +275,19 @@
             }
             
             grid.innerHTML = '';
+            
+            // Filter links based on permissions
+            const perms = window.userPermissions || [];
+            const isAdmin = perms.includes('*');
+
             links.forEach(link => {
+                // Permission check
+                // We use link.url as the permission key for now. 
+                // Checks if permissions array contains URL, OR permissions contains '*'
+                if (!isAdmin && !perms.includes(link.url)) {
+                    return; // Skip this link
+                }
+
                 const card = document.createElement('a');
                 card.className = 'link-card';
                 card.href = link.url || '#';
@@ -340,7 +352,37 @@
         
         document.addEventListener('DOMContentLoaded', init);
     </script>
-    <script>window.currentUser = "<?= isset($_SESSION['user']) ? htmlspecialchars($_SESSION['user']) : '' ?>";</script>
+<?php
+// Load user permissions
+$permissions = [];
+$username = $_SESSION['user'] ?? null;
+if ($username) {
+    if ($username === 'admin') {
+        $permissions = ['*']; // Fallback for admin if auth method differs, but usually loaded from file below
+    }
+    
+    // Path to mnguser data
+    $user_file = __DIR__ . '/../mnguser/data/users/' . $username . '.json';
+    if (file_exists($user_file)) {
+        $u_data = json_decode(file_get_contents($user_file), true);
+        $permissions = $u_data['permissions'] ?? [];
+    }
+}
+?>
+    <script>
+        window.currentUser = "<?= isset($_SESSION['user']) ? htmlspecialchars($_SESSION['user']) : '' ?>";
+        window.userPermissions = <?= json_encode($permissions) ?>;
+    </script>
     <script src="../shared/theme.js"></script>
+    <script>
+        // Override renderPortal to apply permissions
+        const originalRenderPortal = renderPortal;
+        
+        // We modify the renderPortal function in the script block above, 
+        // OR we can just inject logic. Since I am replacing the file content,
+        // let's update the renderPortal function directly in the previous tool call blocks
+        // but here I am appending/modifying the end of the file.
+        // Actually, it is better to modify the renderPortal function definition itself.
+    </script>
 </body>
 </html>
