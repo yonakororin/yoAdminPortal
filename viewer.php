@@ -39,7 +39,7 @@
         }
         
         header {
-            background: var(--bg-card);
+            background: var(--theme-header-bg, var(--bg-card));
             border-bottom: 1px solid var(--border);
             padding: 1rem 2rem;
             display: flex;
@@ -212,20 +212,7 @@
                 <i class="fa-solid fa-chevron-down" style="font-size:0.6rem;"></i>
             </button>
             <div class="user-menu-dropdown" id="user-dropdown">
-                <div class="user-menu-item theme-select">
-                    <i class="fa-solid fa-palette"></i>
-                    <span>Theme:</span>
-                    <select id="theme-select" title="Theme">
-                        <option value="dark">🌙 Dark</option>
-                        <option value="light">☀️ Light</option>
-                        <option value="midnight">🔮 Midnight</option>
-                        <option value="ocean">🌊 Ocean</option>
-                        <option value="forest">🌲 Forest</option>
-                        <option value="sunset">🌅 Sunset</option>
-                        <option value="mono">⬜ Mono</option>
-                        <option value="rose">🌸 Rose</option>
-                    </select>
-                </div>
+
                 <a href="logout.php" class="user-menu-item">
                     <i class="fa-solid fa-sign-out-alt"></i>
                     <span>Logout</span>
@@ -358,7 +345,7 @@ $permissions = [];
 $username = $_SESSION['user'] ?? null;
 if ($username) {
     if ($username === 'admin') {
-        $permissions = ['*']; // Fallback for admin if auth method differs, but usually loaded from file below
+        $permissions = ['*']; 
     }
     
     // Path to mnguser data
@@ -368,12 +355,37 @@ if ($username) {
         $permissions = $u_data['permissions'] ?? [];
     }
 }
+
+// Load Portal Config for Theme
+$config_param = isset($_GET['config']) ? $_GET['config'] : 'portal_config.json';
+// Security: only allow .json and basic sanitization
+$config_path = $config_param;
+if (!preg_match('/^(\/|[a-zA-Z]:)/', $config_param)) {
+    $config_path = __DIR__ . '/' . $config_param;
+}
+$config_path = realpath($config_path) ?: $config_path;
+
+$portal_config = [];
+if (file_exists($config_path)) {
+    $decoded = json_decode(file_get_contents($config_path), true);
+    if (is_array($decoded)) {
+        $portal_config = $decoded;
+    }
+}
+
 ?>
     <script>
         window.currentUser = "<?= isset($_SESSION['user']) ? htmlspecialchars($_SESSION['user']) : '' ?>";
         window.userPermissions = <?= json_encode($permissions) ?>;
+        window.mngConfig = <?= json_encode([
+            'target_env' => $portal_config['target_env'] ?? (isset($_GET['env']) ? str_replace('web-', '', $_GET['env']) : 'dev'),
+            'base_color' => $portal_config['base_color'] ?? null,
+            'debug_path' => $config_path
+        ]) ?>;
     </script>
     <script src="../shared/theme.js"></script>
+
+
     <script>
         // Override renderPortal to apply permissions
         const originalRenderPortal = renderPortal;
