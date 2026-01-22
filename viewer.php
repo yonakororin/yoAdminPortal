@@ -213,7 +213,7 @@
             </button>
             <div class="user-menu-dropdown" id="user-dropdown">
 
-                <a href="../yoSSO/change_password.php" class="user-menu-item">
+                <a href="../yoSSO/change_password.php?redirect_uri=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>" class="user-menu-item">
                     <i class="fa-solid fa-key"></i>
                     <span>Change Password</span>
                 </a>
