@@ -33,6 +33,10 @@
                     <i class="fa-solid fa-chevron-down"></i>
                 </button>
                 <div id="user-dropdown" class="user-menu-dropdown">
+                    <a href="../yoSSO/change_password.php" class="user-menu-item">
+                        <i class="fa-solid fa-key"></i>
+                        <span>Change Password</span>
+                    </a>
                     <a href="logout.php"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
