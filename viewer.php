@@ -50,7 +50,7 @@
         .portal-title {
             font-size: 1.5rem;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--text);
             cursor: pointer;
             transition: opacity 0.2s;
         }
