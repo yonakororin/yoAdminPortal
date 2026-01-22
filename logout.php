@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../shared/session_config.php';
 session_start();
 session_destroy();
 
@@ -11,7 +12,11 @@ $path = rtrim($path, '/');
 $base_url = $protocol . $host . $path;
 
 // Redirect to SSO login with this app as the redirect target
-$redirect_uri = urlencode("$base_url/callback.php");
+$callback_url = "$base_url/callback.php";
+if (isset($_GET['next']) && !empty($_GET['next'])) {
+    $callback_url .= "?next=" . urlencode($_GET['next']);
+}
+$redirect_uri = urlencode($callback_url);
 $app_name = urlencode("Portal");
 header("Location: ../yoSSO/?redirect_uri=$redirect_uri&app_name=$app_name");
 exit;
