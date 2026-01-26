@@ -11,8 +11,20 @@ if (!function_exists('str_ends_with')) {
     }
 }
 
-// Configuration
-$sso_url = '../yoSSO/';
+// Calculate mngtools base URL (parent of yoAdminPortal)
+function get_mngtools_base_url() {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+    $host = $_SERVER['HTTP_HOST'];
+    // Get the path to yoAdminPortal, then go up one level
+    $portal_path = str_replace('\\', '/', dirname(__DIR__)); // /path/to/mngtools
+    $doc_root = str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT']));
+    $web_path = substr($portal_path, strlen($doc_root)); // /mngtools
+    return $protocol . $host . $web_path;
+}
+
+// Configuration - absolute SSO URL
+$mngtools_base = get_mngtools_base_url();
+$sso_url = $mngtools_base . '/yoSSO/';
 
 function get_current_base_url() {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
