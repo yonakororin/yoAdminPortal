@@ -344,21 +344,8 @@
         document.addEventListener('DOMContentLoaded', init);
     </script>
 <?php
-// Load user permissions
-$permissions = [];
-$username = $_SESSION['user'] ?? null;
-if ($username) {
-    if ($username === 'admin') {
-        $permissions = ['*']; 
-    }
-    
-    // Path to mnguser data
-    $user_file = __DIR__ . '/../mnguser/data/users/' . $username . '.json';
-    if (file_exists($user_file)) {
-        $u_data = json_decode(file_get_contents($user_file), true);
-        $permissions = $u_data['permissions'] ?? [];
-    }
-}
+// Note: $permissions is already set by auth.php (required at top of file)
+// No need to reload here
 
 // Load Portal Config for Theme
 $config_param = isset($_GET['config']) ? $_GET['config'] : 'portal_config.json';

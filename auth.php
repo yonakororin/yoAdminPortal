@@ -71,5 +71,44 @@ if (isset($_GET['debug_session'])) {
     exit;
 }
 
+// 2. Load user permissions from mnguser data
+$permissions = ['*']; // Default to admin (full access) for backward compatibility
+$current_user = $_SESSION['user'] ?? '';
+
+if (!empty($current_user)) {
+    // First check mnguser data
+    $mnguser_file = dirname(__DIR__) . '/adminTools/mnguser/data/users/' . $current_user . '.json';
+    
+    if (file_exists($mnguser_file)) {
+        $user_data = json_decode(file_get_contents($mnguser_file), true);
+        if (is_array($user_data) && isset($user_data['permissions'])) {
+            $permissions = $user_data['permissions'];
+        }
+    } else {
+        // If user file doesn't exist in mnguser:
+        // - 'admin' gets full access by default
+        // - Other users could get empty permissions or full access depending on policy
+        if ($current_user === 'admin') {
+            $permissions = ['*'];
+        } else {
+            // For users not in mnguser, grant full access by default
+            // (this can be changed to [] for stricter policy)
+            $permissions = ['*'];
+        }
+    }
+}
+
+// Debug: Check permissions if requested
+if (isset($_GET['debug_permissions'])) {
+    echo "<pre>";
+    echo "Current User: " . htmlspecialchars($current_user) . "\n";
+    echo "mnguser file: " . $mnguser_file . "\n";
+    echo "File exists: " . (file_exists($mnguser_file) ? 'YES' : 'NO') . "\n";
+    echo "Permissions:\n";
+    print_r($permissions);
+    echo "</pre>";
+    exit;
+}
+
 // Authenticated - script execution continues in the file that required this
 ?>
