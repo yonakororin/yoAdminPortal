@@ -1,0 +1,11 @@
+{
+    "_comment": "mngtools Path Configuration - Edit this file when folder structure changes",
+    
+    "webRoot": "/mngtools",
+    
+    "_comment_adminTools": "Path to adminTools folder (relative to document root or absolute)",
+    "adminToolsWebPath": "/mngtools/adminTools",
+    
+    "_comment_filesystem": "Filesystem path (optional - auto-detected if not specified)",
+    "adminTools": null
+}
