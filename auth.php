@@ -15,10 +15,26 @@ if (!function_exists('str_ends_with')) {
 function get_mngtools_base_url() {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
     $host = $_SERVER['HTTP_HOST'];
-    // Get the path to yoAdminPortal, then go up one level
-    $portal_path = str_replace('\\', '/', dirname(__DIR__)); // /path/to/mngtools
-    $doc_root = str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT']));
-    $web_path = substr($portal_path, strlen($doc_root)); // /mngtools
+    
+    // SCRIPT_NAME から mngtools のパスを取得
+    // 例: /mngtools/yoAdminPortal/viewer.php → /mngtools
+    $script_path = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
+    $parts = explode('/', trim($script_path, '/'));
+    
+    // yoAdminPortal の親ディレクトリ = mngtools
+    // パス構造: /mngtools/yoAdminPortal/file.php
+    if (count($parts) >= 2) {
+        // 最後の2つ（yoAdminPortal/file.php）を除いて結合
+        array_pop($parts); // file.php を削除
+        array_pop($parts); // yoAdminPortal を削除
+        $web_path = '/' . implode('/', $parts);
+        if ($web_path === '/') {
+            $web_path = '';
+        }
+    } else {
+        $web_path = '';
+    }
+    
     return $protocol . $host . $web_path;
 }
 
@@ -35,12 +51,21 @@ function get_current_base_url() {
     return $protocol . $host . $path;
 }
 
+// 現在のページの完全なURLを取得（クエリパラメータを含む）
+function get_current_page_url() {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+    $host = $_SERVER['HTTP_HOST'];
+    $uri = $_SERVER['REQUEST_URI'];
+    return $protocol . $host . $uri;
+}
+
 $base_url = get_current_base_url();
 
 // 1. Check if already logged in (unified session key 'user')
 if (!isset($_SESSION['user'])) {
-    // Redirect to SSO with app name
-    $callback_url = "$base_url/callback.php?next=" . urlencode($_SERVER['REQUEST_URI']);
+    // 現在のページの完全なURLを取得
+    $current_page = get_current_page_url();
+    $callback_url = "$base_url/callback.php?next=" . urlencode($current_page);
     $redirect_uri = urlencode($callback_url);
     $app_name = urlencode("Portal");
     header("Location: $sso_url?redirect_uri=$redirect_uri&app_name=$app_name");
@@ -53,7 +78,8 @@ if (isset($_SESSION['login_time'])) {
     if ((time() - $_SESSION['login_time']) > $timeout_duration) {
         // Session expired
         session_destroy();
-        $callback_url = "$base_url/callback.php?next=" . urlencode($_SERVER['REQUEST_URI']);
+        $current_page = get_current_page_url();
+        $callback_url = "$base_url/callback.php?next=" . urlencode($current_page);
         $redirect_uri = urlencode($callback_url);
         $app_name = urlencode("Portal");
         header("Location: $sso_url?redirect_uri=$redirect_uri&app_name=$app_name");
