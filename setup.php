@@ -255,9 +255,9 @@ if (!file_exists($portal_config_file)) {
         'target_env' => 'dev',
         'links' => [
             [
-                'label' => 'Dashboard',
-                'url' => '#',
-                'icon' => 'fa-chart-line'
+                'label' => 'ポータル編集',
+                'url' => 'http://localhost/mngtools/yoAdminPortal/builder.php',
+                'icon' => 'fa-pen-to-square'
             ]
         ]
     ];

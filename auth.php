@@ -136,5 +136,105 @@ if (isset($_GET['debug_permissions'])) {
     exit;
 }
 
+/**
+ * 現在のページへのアクセス権限をチェック
+ * 権限がない場合は403エラーを表示して終了
+ * 
+ * @param string|null $required_url チェック対象のURL（nullの場合は現在のURLを使用）
+ */
+function check_page_permission($required_url = null) {
+    global $permissions, $current_user;
+    
+    // 管理者（*権限）は全てアクセス可能
+    if (in_array('*', $permissions)) {
+        return true;
+    }
+    
+    // チェック対象のURLを決定
+    if ($required_url === null) {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+        $host = $_SERVER['HTTP_HOST'];
+        $required_url = $protocol . $host . $_SERVER['REQUEST_URI'];
+        
+        // クエリパラメータを除去してベースURLで比較
+        $required_url = strtok($required_url, '?');
+    }
+    
+    // 権限リストにURLが含まれているかチェック
+    foreach ($permissions as $allowed_url) {
+        // 完全一致
+        if ($allowed_url === $required_url) {
+            return true;
+        }
+        
+        // 部分一致（URLがパターンで終わる場合）
+        // 例: http://localhost/mngtools/yoAdminBuilder/ で始まるURL全て許可
+        if (substr($allowed_url, -1) === '*') {
+            $pattern = rtrim($allowed_url, '*');
+            if (strpos($required_url, $pattern) === 0) {
+                return true;
+            }
+        }
+        
+        // URLの末尾のスラッシュを正規化して比較
+        $normalized_allowed = rtrim($allowed_url, '/');
+        $normalized_required = rtrim($required_url, '/');
+        if ($normalized_allowed === $normalized_required) {
+            return true;
+        }
+    }
+    
+    // アクセス拒否
+    http_response_code(403);
+    echo '<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アクセス拒否</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+        h1 {
+            color: #f85149;
+            font-size: 4rem;
+            margin-bottom: 0.5rem;
+        }
+        p {
+            color: #8b949e;
+            font-size: 1.2rem;
+        }
+        a {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>403</h1>
+        <p>このページへのアクセス権限がありません</p>
+        <p><a href="javascript:history.back()">戻る</a> | <a href="/mngtools/yoAdminPortal/viewer.php">ポータルへ</a></p>
+    </div>
+</body>
+</html>';
+    exit;
+}
+
 // Authenticated - script execution continues in the file that required this
 ?>
