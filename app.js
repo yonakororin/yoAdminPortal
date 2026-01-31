@@ -110,7 +110,10 @@ async function init() {
 async function loadConfig() {
     const urlParams = new URLSearchParams(window.location.search);
     const urlConfig = urlParams.get('config');
-    const file = urlConfig || localStorage.getItem('yoPortalTargetFile') || 'portal_config.json';
+
+    // state.targetFile が既に設定されている場合はそれを使用
+    // そうでなければ URL パラメータ、localStorage、デフォルト値の順で取得
+    const file = state.targetFile || urlConfig || localStorage.getItem('yoPortalTargetFile') || 'portal_config.json';
 
     state.targetFile = file;
     fileInput.value = file;

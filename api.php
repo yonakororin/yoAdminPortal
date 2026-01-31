@@ -78,16 +78,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($content) {
         if (!str_ends_with($targetFile, '.json')) $targetFile .= '.json';
         
-        file_put_contents($targetFile, $content);
-        echo json_encode(['success' => true, 'file' => $targetFile]);
+        // ファイルパスを解決
+        // 絶対パスでない場合は __DIR__ を基準にする
+        if (!preg_match('/^(\/|[a-zA-Z]:)/', $targetFile)) {
+            $targetFile = __DIR__ . '/' . $targetFile;
+        }
+        
+        // セキュリティチェック: __DIR__ 配下のみ許可（オプション）
+        $realTargetDir = realpath(dirname($targetFile));
+        $realBaseDir = realpath(__DIR__);
+        
+        // ディレクトリが存在しない場合は作成を試みる
+        $targetDir = dirname($targetFile);
+        if (!is_dir($targetDir)) {
+            if (!mkdir($targetDir, 0755, true)) {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => 'Failed to create directory']);
+                exit;
+            }
+        }
+        
+        $result = file_put_contents($targetFile, $content);
+        
+        if ($result !== false) {
+            echo json_encode(['success' => true, 'file' => $targetFile, 'bytes' => $result]);
+        } else {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Failed to write file',
+                'file' => $targetFile,
+                'writable' => is_writable(dirname($targetFile))
+            ]);
+        }
     } else {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'No data received']);
     }
 } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    if (file_exists($filename)) {
-        readfile($filename);
+    // GETでもパスを解決
+    $targetFile = $filename;
+    if (!preg_match('/^(\/|[a-zA-Z]:)/', $targetFile)) {
+        $targetFile = __DIR__ . '/' . $targetFile;
+    }
+    
+    if (file_exists($targetFile)) {
+        readfile($targetFile);
     } else {
         echo json_encode(['title' => 'Portal', 'links' => []]);
     }
 }
+

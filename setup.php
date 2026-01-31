@@ -244,7 +244,34 @@ foreach ($files_to_deploy as $filename => $description) {
     }
 }
 
-// 3. yoSSO セットアップの実行確認
+// 3. portal_config.json の確認/作成
+output("", $is_cli);
+output("[ポータル設定]", $is_cli);
+
+$portal_config_file = __DIR__ . '/portal_config.json';
+if (!file_exists($portal_config_file)) {
+    $default_config = [
+        'title' => 'Portal',
+        'target_env' => 'dev',
+        'links' => [
+            [
+                'label' => 'Dashboard',
+                'url' => '#',
+                'icon' => 'fa-chart-line'
+            ]
+        ]
+    ];
+    if (file_put_contents($portal_config_file, json_encode($default_config, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE))) {
+        output("[✓] portal_config.json を作成しました", $is_cli, 'success');
+    } else {
+        output("[✗] portal_config.json の作成に失敗しました", $is_cli, 'error');
+        $has_errors = true;
+    }
+} else {
+    output("[·] portal_config.json は既に存在します", $is_cli);
+}
+
+// 4. yoSSO セットアップの実行確認
 output("", $is_cli);
 output("[依存関係]", $is_cli);
 
