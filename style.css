@@ -294,6 +294,8 @@ main {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    padding-right: 1rem;
+    /* Space for scrollbar */
 }
 
 .form-group {

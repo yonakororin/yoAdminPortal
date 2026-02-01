@@ -59,12 +59,12 @@
     
     <!-- Edit Modal -->
     <div id="edit-modal" class="modal-overlay">
-        <div class="modal">
+        <div class="modal" style="max-height: 90vh; display: flex; flex-direction: column;">
             <div class="modal-header">
                 <h2>Edit Link</h2>
                 <button class="close-btn" onclick="closeModal()">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="overflow-y: auto; flex: 1;">
                 <div class="form-group">
                     <label>Label</label>
                     <input type="text" id="link-label" placeholder="Dashboard">
@@ -97,7 +97,7 @@
                 </div>
                 <div class="form-group">
                     <label>Select Icon</label>
-                    <div id="icon-grid" class="icon-grid">
+                    <div id="icon-grid" class="icon-grid" style="max-height: 150px; overflow-y: auto;">
                         <!-- Icons will be rendered by JS -->
                     </div>
                 </div>
