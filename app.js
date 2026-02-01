@@ -488,8 +488,8 @@ function updateSeparatorPreview() {
     const color = colorText && /^#[0-9A-Fa-f]{6}$/.test(colorText) ? colorText : '#2f81f7';
 
     const preview = document.getElementById('separator-preview');
-    const lines = preview.querySelectorAll('span:not(#separator-preview-text)');
-    lines.forEach(line => line.style.background = color);
+    const lineEl = preview.querySelector('.separator-line');
+    if (lineEl) lineEl.style.background = color;
 
     const textEl = document.getElementById('separator-preview-text');
     textEl.textContent = title.toUpperCase();

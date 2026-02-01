@@ -227,7 +227,10 @@
             font-weight: 700;
         }
         
-        .separator-with-title::before,
+        .separator-with-title::before {
+            display: none;
+        }
+        
         .separator-with-title::after {
             content: '';
             flex: 1;

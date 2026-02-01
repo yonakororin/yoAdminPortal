@@ -135,9 +135,8 @@
                 <div class="form-group">
                     <label>Preview</label>
                     <div id="separator-preview" style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; background: var(--bg); border-radius: 4px;">
-                        <span style="flex: 1; height: 2px; background: var(--primary);"></span>
                         <span id="separator-preview-text" style="color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">SECTION TITLE</span>
-                        <span style="flex: 1; height: 2px; background: var(--primary);"></span>
+                        <span class="separator-line" style="flex: 1; height: 2px; background: var(--primary);"></span>
                     </div>
                 </div>
             </div>
