@@ -97,6 +97,7 @@ const commonIcons = [
 
 let editingIndex = null;
 let draggedIndex = null;
+let insertAfterIndex = null; // For inserting new link after a specific separator
 
 // ============================================================
 // INITIALIZATION
@@ -163,43 +164,71 @@ async function saveConfig() {
 function renderGrid() {
     portalGrid.innerHTML = '';
 
-    // Render existing links
-    state.links.forEach((link, index) => {
-        const card = createLinkCard(link, index);
-        portalGrid.appendChild(card);
-    });
+    // Group links into sections (separated by separators)
+    // Each section ends with an "Add" card
+    let sectionStartIndex = 0;
 
-    // Add buttons
-    const addContainer = document.createElement('div');
-    addContainer.className = 'link-card';
-    addContainer.style.border = '2px dashed var(--border)';
-    addContainer.style.background = 'transparent';
-    addContainer.style.flexDirection = 'column';
-    addContainer.style.gap = '8px';
-    addContainer.style.justifyContent = 'center';
+    for (let i = 0; i <= state.links.length; i++) {
+        const link = state.links[i];
+        const isEnd = i === state.links.length;
+        const isSeparator = link && link.type === 'separator';
 
-    // Add Link Button
-    const addLinkBtn = document.createElement('div');
-    addLinkBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Link';
-    addLinkBtn.className = 'btn btn-secondary';
-    addLinkBtn.style.width = '100%';
-    addLinkBtn.onclick = () => openEditModal(-1);
+        if (isSeparator || isEnd) {
+            // Render "Add Link" card at the end of this section (before this separator)
+            const addCard = createAddCard(i - 1); // Insert after the last item of this section
+            portalGrid.appendChild(addCard);
 
-    // Add Separator Button
-    const addSepBtn = document.createElement('div');
-    addSepBtn.innerHTML = '<i class="fa-solid fa-minus"></i> Add Line Break';
-    addSepBtn.className = 'btn btn-secondary';
-    addSepBtn.style.width = '100%';
-    addSepBtn.onclick = () => addSeparator();
+            // If this is a separator, render it
+            if (isSeparator) {
+                const card = createLinkCard(link, i);
+                portalGrid.appendChild(card);
+            }
 
-    addContainer.appendChild(addLinkBtn);
-    addContainer.appendChild(addSepBtn);
+            // If this is the end, also add "Add Section" button
+            if (isEnd) {
+                const addSepCard = createAddSeparatorCard();
+                portalGrid.appendChild(addSepCard);
+            }
 
-    portalGrid.appendChild(addContainer);
+            sectionStartIndex = i + 1;
+        } else {
+            // Regular link
+            const card = createLinkCard(link, i);
+            portalGrid.appendChild(card);
+        }
+    }
+}
+
+// Create "Add Link" card for a section
+function createAddCard(insertAfterIdx) {
+    const card = document.createElement('div');
+    card.className = 'link-card add-card';
+    card.innerHTML = `
+        <i class="fa-solid fa-plus add-icon"></i>
+        <span class="add-text">Add Link</span>
+    `;
+    card.onclick = () => {
+        insertAfterIndex = insertAfterIdx;
+        openEditModal(-1);
+    };
+    return card;
+}
+
+// Create "Add Section" card
+function createAddSeparatorCard() {
+    const card = document.createElement('div');
+    card.className = 'link-card add-card add-separator-card';
+    card.innerHTML = `
+        <i class="fa-solid fa-layer-group add-icon"></i>
+        <span class="add-text">Add Section</span>
+    `;
+    card.onclick = () => addSeparator();
+    return card;
 }
 
 function addSeparator() {
-    state.links.push({ type: 'separator' });
+    const title = prompt('Section title (leave empty for line break only):', '');
+    state.links.push({ type: 'separator', title: title || '' });
     renderGrid();
 }
 
@@ -213,17 +242,19 @@ function createLinkCard(link, index) {
 
     if (isSeparator) {
         card.className += ' separator-card';
+        const titleText = link.title ? `<span class="separator-title">${link.title}</span>` : '';
         card.innerHTML = `
             <div class="card-actions">
+                <button class="edit" title="Edit Title"><i class="fa-solid fa-pen"></i></button>
                 <button class="delete" title="Delete"><i class="fa-solid fa-trash"></i></button>
             </div>
+            ${titleText}
         `;
+        if (!link.title) {
+            card.classList.add('no-title');
+        }
     } else {
         card.innerHTML = `
-            <div class="card-actions">
-                <button class="edit" title="Edit"><i class="fa-solid fa-pen"></i></button>
-                <button class="delete" title="Delete"><i class="fa-solid fa-trash"></i></button>
-            </div>
             <i class="fa-solid ${link.icon || 'fa-link'} icon"></i>
             <span class="label">${link.label || 'Link'}</span>
         `;
@@ -299,20 +330,44 @@ function createLinkCard(link, index) {
     if (editBtn) {
         editBtn.onclick = (e) => {
             e.stopPropagation();
-            openEditModal(index);
+            if (isSeparator) {
+                // Edit separator title
+                const currentTitle = link.title || '';
+                const newTitle = prompt('Section title (leave empty for line break only):', currentTitle);
+                if (newTitle !== null) {
+                    state.links[index].title = newTitle;
+                    renderGrid();
+                }
+            } else {
+                openEditModal(index);
+            }
         };
     }
 
-    card.querySelector('.delete').onclick = (e) => {
-        e.stopPropagation();
-        if (confirm('Delete this link?')) {
-            state.links.splice(index, 1);
-            renderGrid();
-        }
-    };
+    const deleteBtn = card.querySelector('.delete');
+    if (deleteBtn) {
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            const confirmMsg = isSeparator ? 'Delete this separator?' : 'Delete this link?';
+            if (confirm(confirmMsg)) {
+                state.links.splice(index, 1);
+                renderGrid();
+            }
+        };
+    }
 
     card.onclick = () => {
-        if (!isSeparator) openEditModal(index);
+        if (isSeparator) {
+            // Click on separator also edits title
+            const currentTitle = link.title || '';
+            const newTitle = prompt('Section title (leave empty for line break only):', currentTitle);
+            if (newTitle !== null) {
+                state.links[index].title = newTitle;
+                renderGrid();
+            }
+        } else {
+            openEditModal(index);
+        }
     };
 
     return card;
@@ -335,12 +390,29 @@ function openEditModal(index) {
     // Update preview
     updateIconPreview(link.icon || 'fa-link');
 
+    // Show/hide delete button (hide for new links)
+    const deleteBtn = document.getElementById('modal-delete-btn');
+    if (deleteBtn) {
+        deleteBtn.style.display = index >= 0 ? 'block' : 'none';
+    }
+
     modal.classList.add('active');
 }
 
 function closeModal() {
     modal.classList.remove('active');
     editingIndex = null;
+    insertAfterIndex = null; // Reset insert position
+}
+
+function deleteCurrentLink() {
+    if (editingIndex !== null && editingIndex >= 0) {
+        if (confirm('Delete this link?')) {
+            state.links.splice(editingIndex, 1);
+            closeModal();
+            renderGrid();
+        }
+    }
 }
 
 function renderIconGrid(selectedIcon) {
@@ -383,7 +455,16 @@ function saveLink() {
     if (editingIndex >= 0) {
         state.links[editingIndex] = link;
     } else {
-        state.links.push(link);
+        // New link
+        if (insertAfterIndex !== null) {
+            // Insert after the specified index (-1 means at position 0)
+            const insertPos = insertAfterIndex + 1;
+            state.links.splice(insertPos, 0, link);
+            insertAfterIndex = null; // Reset
+        } else {
+            // Append to end
+            state.links.push(link);
+        }
     }
 
     closeModal();

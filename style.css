@@ -88,6 +88,10 @@ header {
     color: white;
 }
 
+.btn-danger:hover {
+    background: #b62324;
+}
+
 .btn-secondary {
     background: var(--bg);
     border: 1px solid var(--border);
@@ -450,11 +454,6 @@ main {
     cursor: grabbing;
 }
 
-.link-card.separator-card::before {
-    content: "--- Line Break ---";
-    font-family: monospace;
-}
-
 .link-card.separator-card:hover {
     border-color: var(--primary);
     color: var(--primary);
@@ -474,7 +473,90 @@ main {
     display: flex;
 }
 
+.link-card.separator-card .card-actions .add-link {
+    color: var(--success);
+}
+
+.link-card.separator-card .card-actions .add-link:hover {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+}
+
 .link-card.separator-card .icon,
 .link-card.separator-card .label {
     display: none;
+}
+
+/* Separator Title */
+.link-card.separator-card .separator-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    padding: 0 1rem;
+}
+
+.link-card.separator-card.no-title::before {
+    content: "--- Line Break ---";
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.link-card.separator-card:not(.no-title)::before {
+    content: none;
+}
+
+/* Add Card Styles */
+.link-card.add-card {
+    border: 2px dashed var(--border);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.link-card.add-card:hover {
+    border-color: var(--success);
+    background: rgba(46, 160, 67, 0.1);
+}
+
+.link-card.add-card .add-icon {
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
+
+.link-card.add-card:hover .add-icon {
+    color: var(--success);
+}
+
+.link-card.add-card .add-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.link-card.add-card:hover .add-text {
+    color: var(--success);
+}
+
+/* Add Section Card */
+.link-card.add-separator-card {
+    grid-column: 1 / -1;
+    height: auto;
+    min-height: 50px;
+    aspect-ratio: auto;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.link-card.add-separator-card:hover {
+    border-color: var(--primary);
+    background: rgba(47, 129, 247, 0.1);
+}
+
+.link-card.add-separator-card:hover .add-icon,
+.link-card.add-separator-card:hover .add-text {
+    color: var(--primary);
 }

@@ -94,6 +94,7 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <button id="modal-delete-btn" class="btn btn-danger" onclick="deleteCurrentLink()" style="margin-right: auto;">Delete</button>
                 <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveLink()">Save</button>
             </div>

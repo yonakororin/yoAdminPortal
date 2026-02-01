@@ -209,6 +209,31 @@
             margin: 1rem 0;
             opacity: 0.5;
         }
+        
+        /* Separator with Title */
+        .separator-with-title {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0 1rem 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .separator-with-title::before,
+        .separator-with-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+            opacity: 0.5;
+        }
+        
+        .separator-with-title span {
+            color: var(--text);
+        }
     </style>
 </head>
 <body>
@@ -283,28 +308,28 @@
             // 1. Determine visibility of content links
             const processedLinks = links.map(link => {
                 if (link.type === 'separator') {
-                    return { type: 'separator', visible: true }; // Initially assume visible
+                    return { ...link, type: 'separator', visible: true }; // Keep title property
                 }
                 const isVisible = isAdmin || perms.includes(link.url);
                 return { ...link, visible: isVisible };
             });
 
-            // 2. Determine visibility of separators based on section content
-            let hasVisibleContentInCurrentSection = false;
-            
+            // 2. Determine visibility of separators based on FOLLOWING section content
+            // A separator is shown only if the section AFTER it has visible items
             for (let i = 0; i < processedLinks.length; i++) {
                 const link = processedLinks[i];
                 if (link.type === 'separator') {
-                    // If the section before this separator has no visible content, 
-                    // hide this separator (collapse the empty row)
-                    // Also, if it's the first element, hide it
-                    if (!hasVisibleContentInCurrentSection) {
-                        link.visible = false; 
+                    // Check if there are visible items after this separator (until next separator or end)
+                    let hasVisibleInNextSection = false;
+                    for (let j = i + 1; j < processedLinks.length; j++) {
+                        if (processedLinks[j].type === 'separator') break;
+                        if (processedLinks[j].visible) {
+                            hasVisibleInNextSection = true;
+                            break;
+                        }
                     }
-                    hasVisibleContentInCurrentSection = false; // Reset for next section
-                } else {
-                    if (link.visible) {
-                        hasVisibleContentInCurrentSection = true;
+                    if (!hasVisibleInNextSection) {
+                        link.visible = false;
                     }
                 }
             }
@@ -315,7 +340,12 @@
 
                 if (link.type === 'separator') {
                     const sep = document.createElement('div');
-                    sep.className = 'separator-line';
+                    if (link.title) {
+                        sep.className = 'separator-with-title';
+                        sep.innerHTML = `<span>${link.title}</span>`;
+                    } else {
+                        sep.className = 'separator-line';
+                    }
                     grid.appendChild(sep);
                     return;
                 }
