@@ -169,15 +169,38 @@ function renderGrid() {
         portalGrid.appendChild(card);
     });
 
-    // Add empty card for adding new link
-    const addCard = document.createElement('div');
-    addCard.className = 'link-card';
-    addCard.innerHTML = `
-        <i class="fa-solid fa-plus add-icon"></i>
-        <span class="add-text">Add Link</span>
-    `;
-    addCard.onclick = () => openEditModal(-1);
-    portalGrid.appendChild(addCard);
+    // Add buttons
+    const addContainer = document.createElement('div');
+    addContainer.className = 'link-card';
+    addContainer.style.border = '2px dashed var(--border)';
+    addContainer.style.background = 'transparent';
+    addContainer.style.flexDirection = 'column';
+    addContainer.style.gap = '8px';
+    addContainer.style.justifyContent = 'center';
+
+    // Add Link Button
+    const addLinkBtn = document.createElement('div');
+    addLinkBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Link';
+    addLinkBtn.className = 'btn btn-secondary';
+    addLinkBtn.style.width = '100%';
+    addLinkBtn.onclick = () => openEditModal(-1);
+
+    // Add Separator Button
+    const addSepBtn = document.createElement('div');
+    addSepBtn.innerHTML = '<i class="fa-solid fa-minus"></i> Add Line Break';
+    addSepBtn.className = 'btn btn-secondary';
+    addSepBtn.style.width = '100%';
+    addSepBtn.onclick = () => addSeparator();
+
+    addContainer.appendChild(addLinkBtn);
+    addContainer.appendChild(addSepBtn);
+
+    portalGrid.appendChild(addContainer);
+}
+
+function addSeparator() {
+    state.links.push({ type: 'separator' });
+    renderGrid();
 }
 
 function createLinkCard(link, index) {
@@ -186,14 +209,25 @@ function createLinkCard(link, index) {
     card.draggable = true; // Enable dragging
     card.dataset.index = index;
 
-    card.innerHTML = `
-        <div class="card-actions">
-            <button class="edit" title="Edit"><i class="fa-solid fa-pen"></i></button>
-            <button class="delete" title="Delete"><i class="fa-solid fa-trash"></i></button>
-        </div>
-        <i class="fa-solid ${link.icon || 'fa-link'} icon"></i>
-        <span class="label">${link.label || 'Link'}</span>
-    `;
+    const isSeparator = link.type === 'separator';
+
+    if (isSeparator) {
+        card.className += ' separator-card';
+        card.innerHTML = `
+            <div class="card-actions">
+                <button class="delete" title="Delete"><i class="fa-solid fa-trash"></i></button>
+            </div>
+        `;
+    } else {
+        card.innerHTML = `
+            <div class="card-actions">
+                <button class="edit" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                <button class="delete" title="Delete"><i class="fa-solid fa-trash"></i></button>
+            </div>
+            <i class="fa-solid ${link.icon || 'fa-link'} icon"></i>
+            <span class="label">${link.label || 'Link'}</span>
+        `;
+    }
 
     // --- Drag and Drop Handlers ---
     // --- Drag and Drop Handlers ---
@@ -261,10 +295,13 @@ function createLinkCard(link, index) {
     // ------------------------------
     // ------------------------------
 
-    card.querySelector('.edit').onclick = (e) => {
-        e.stopPropagation();
-        openEditModal(index);
-    };
+    const editBtn = card.querySelector('.edit');
+    if (editBtn) {
+        editBtn.onclick = (e) => {
+            e.stopPropagation();
+            openEditModal(index);
+        };
+    }
 
     card.querySelector('.delete').onclick = (e) => {
         e.stopPropagation();
@@ -274,7 +311,9 @@ function createLinkCard(link, index) {
         }
     };
 
-    card.onclick = () => openEditModal(index);
+    card.onclick = () => {
+        if (!isSeparator) openEditModal(index);
+    };
 
     return card;
 }

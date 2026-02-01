@@ -200,6 +200,15 @@
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+        
+        /* Separator for Viewer */
+        .separator-line {
+            grid-column: 1 / -1;
+            height: 1px;
+            background: var(--border);
+            margin: 1rem 0;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
@@ -267,16 +276,48 @@
             
             grid.innerHTML = '';
             
-            // Filter links based on permissions
+            // Filter and process links visibility
             const perms = window.userPermissions || [];
             const isAdmin = perms.includes('*');
 
-            links.forEach(link => {
-                // Permission check
-                // We use link.url as the permission key for now. 
-                // Checks if permissions array contains URL, OR permissions contains '*'
-                if (!isAdmin && !perms.includes(link.url)) {
-                    return; // Skip this link
+            // 1. Determine visibility of content links
+            const processedLinks = links.map(link => {
+                if (link.type === 'separator') {
+                    return { type: 'separator', visible: true }; // Initially assume visible
+                }
+                const isVisible = isAdmin || perms.includes(link.url);
+                return { ...link, visible: isVisible };
+            });
+
+            // 2. Determine visibility of separators based on section content
+            let hasVisibleContentInCurrentSection = false;
+            
+            for (let i = 0; i < processedLinks.length; i++) {
+                const link = processedLinks[i];
+                if (link.type === 'separator') {
+                    // If the section before this separator has no visible content, 
+                    // hide this separator (collapse the empty row)
+                    // Also, if it's the first element, hide it
+                    if (!hasVisibleContentInCurrentSection) {
+                        link.visible = false; 
+                    }
+                    hasVisibleContentInCurrentSection = false; // Reset for next section
+                } else {
+                    if (link.visible) {
+                        hasVisibleContentInCurrentSection = true;
+                    }
+                }
+            }
+
+            // 3. Render
+            processedLinks.forEach(link => {
+                if (!link.visible) return;
+
+                if (link.type === 'separator') {
+                    const sep = document.createElement('div');
+                    sep.className = 'separator-line';
+                    grid.appendChild(sep);
+                    return;
                 }
 
                 const card = document.createElement('a');
@@ -284,8 +325,6 @@
                 card.href = link.url || '#';
                 
                 // Use a derived target name to reuse existing tabs
-                // Hash the URL to create a unique but consistent target name
-                // Simple hash function for target name
                 const targetName = 'yoPortal_' + (link.url || '').replace(/[^a-zA-Z0-9]/g, '');
                 card.target = targetName;
                 
