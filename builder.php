@@ -80,6 +80,15 @@
                     <small>e.g. fa-home, fa-chart-line, fa-users</small>
                 </div>
                 <div class="form-group">
+                    <label>Icon Color</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="color" id="link-icon-color" value="#2f81f7" style="width: 50px; height: 36px; padding: 0; border: 1px solid var(--border); border-radius: 4px; cursor: pointer;">
+                        <input type="text" id="link-icon-color-text" placeholder="#2f81f7" style="flex: 1;">
+                        <button type="button" class="btn btn-secondary" onclick="resetIconColor()" style="padding: 0.5rem;">Reset</button>
+                    </div>
+                    <small>Choose a color for the icon</small>
+                </div>
+                <div class="form-group">
                     <label>Preview</label>
                     <div id="icon-preview" class="icon-preview">
                         <i class="fa-solid fa-link"></i>
@@ -97,6 +106,45 @@
                 <button id="modal-delete-btn" class="btn btn-danger" onclick="deleteCurrentLink()" style="margin-right: auto;">Delete</button>
                 <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="saveLink()">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Separator Edit Modal -->
+    <div id="separator-modal" class="modal-overlay">
+        <div class="modal" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2 id="separator-modal-title">Edit Section</h2>
+                <button class="close-btn" onclick="closeSeparatorModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Section Title</label>
+                    <input type="text" id="separator-title" placeholder="e.g. Development, Production...">
+                    <small>Leave empty for a simple line break</small>
+                </div>
+                <div class="form-group">
+                    <label>Theme Color</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="color" id="separator-color" value="#2f81f7" style="width: 50px; height: 36px; padding: 0; border: 1px solid var(--border); border-radius: 4px; cursor: pointer;">
+                        <input type="text" id="separator-color-text" placeholder="#2f81f7 or empty for default" style="flex: 1;">
+                        <button type="button" class="btn btn-secondary" onclick="resetSeparatorColor()" style="padding: 0.5rem;">Reset</button>
+                    </div>
+                    <small>This color applies to section title and links within this section</small>
+                </div>
+                <div class="form-group">
+                    <label>Preview</label>
+                    <div id="separator-preview" style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; background: var(--bg); border-radius: 4px;">
+                        <span style="flex: 1; height: 2px; background: var(--primary);"></span>
+                        <span id="separator-preview-text" style="color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">SECTION TITLE</span>
+                        <span style="flex: 1; height: 2px; background: var(--primary);"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="separator-delete-btn" class="btn btn-danger" onclick="deleteCurrentSeparator()" style="margin-right: auto;">Delete</button>
+                <button class="btn btn-secondary" onclick="closeSeparatorModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveSeparator()">Save</button>
             </div>
         </div>
     </div>

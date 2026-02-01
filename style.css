@@ -490,10 +490,12 @@ main {
 
 /* Separator Title */
 .link-card.separator-card .separator-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary);
     padding: 0 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .link-card.separator-card.no-title::before {
@@ -505,6 +507,17 @@ main {
 
 .link-card.separator-card:not(.no-title)::before {
     content: none;
+}
+
+/* Color indicator for separator theme */
+.link-card.separator-card .color-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 /* Add Card Styles */

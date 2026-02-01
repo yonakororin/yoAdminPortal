@@ -222,14 +222,12 @@ function createAddSeparatorCard() {
         <i class="fa-solid fa-layer-group add-icon"></i>
         <span class="add-text">Add Section</span>
     `;
-    card.onclick = () => addSeparator();
+    card.onclick = () => openSeparatorModal(-1); // -1 means new separator
     return card;
 }
 
 function addSeparator() {
-    const title = prompt('Section title (leave empty for line break only):', '');
-    state.links.push({ type: 'separator', title: title || '' });
-    renderGrid();
+    openSeparatorModal(-1);
 }
 
 function createLinkCard(link, index) {
@@ -242,20 +240,25 @@ function createLinkCard(link, index) {
 
     if (isSeparator) {
         card.className += ' separator-card';
-        const titleText = link.title ? `<span class="separator-title">${link.title}</span>` : '';
+        const themeStyle = link.themeColor ? `style="--separator-color: ${link.themeColor}"` : '';
+        const titleStyle = link.themeColor ? `style="color: ${link.themeColor}"` : '';
+        const titleText = link.title ? `<span class="separator-title" ${titleStyle}>${link.title}</span>` : '';
+        const colorIndicator = link.themeColor ? `<span class="color-indicator" style="background: ${link.themeColor}"></span>` : '';
         card.innerHTML = `
             <div class="card-actions">
-                <button class="edit" title="Edit Title"><i class="fa-solid fa-pen"></i></button>
+                <button class="edit" title="Edit Title & Color"><i class="fa-solid fa-pen"></i></button>
                 <button class="delete" title="Delete"><i class="fa-solid fa-trash"></i></button>
             </div>
+            ${colorIndicator}
             ${titleText}
         `;
         if (!link.title) {
             card.classList.add('no-title');
         }
     } else {
+        const iconStyle = link.iconColor ? `style="color: ${link.iconColor}"` : '';
         card.innerHTML = `
-            <i class="fa-solid ${link.icon || 'fa-link'} icon"></i>
+            <i class="fa-solid ${link.icon || 'fa-link'} icon" ${iconStyle}></i>
             <span class="label">${link.label || 'Link'}</span>
         `;
     }
@@ -331,13 +334,7 @@ function createLinkCard(link, index) {
         editBtn.onclick = (e) => {
             e.stopPropagation();
             if (isSeparator) {
-                // Edit separator title
-                const currentTitle = link.title || '';
-                const newTitle = prompt('Section title (leave empty for line break only):', currentTitle);
-                if (newTitle !== null) {
-                    state.links[index].title = newTitle;
-                    renderGrid();
-                }
+                openSeparatorModal(index);
             } else {
                 openEditModal(index);
             }
@@ -358,13 +355,7 @@ function createLinkCard(link, index) {
 
     card.onclick = () => {
         if (isSeparator) {
-            // Click on separator also edits title
-            const currentTitle = link.title || '';
-            const newTitle = prompt('Section title (leave empty for line break only):', currentTitle);
-            if (newTitle !== null) {
-                state.links[index].title = newTitle;
-                renderGrid();
-            }
+            openSeparatorModal(index);
         } else {
             openEditModal(index);
         }
@@ -378,17 +369,39 @@ function createLinkCard(link, index) {
 // ============================================================
 function openEditModal(index) {
     editingIndex = index;
-    const link = index >= 0 ? state.links[index] : { label: '', url: '', icon: 'fa-link' };
+    const link = index >= 0 ? state.links[index] : { label: '', url: '', icon: 'fa-link', iconColor: '' };
 
     document.getElementById('link-label').value = link.label || '';
     document.getElementById('link-url').value = link.url || '';
     document.getElementById('link-icon').value = link.icon || 'fa-link';
 
+    // Icon color
+    const defaultColor = '#2f81f7';
+    const iconColor = link.iconColor || defaultColor;
+    document.getElementById('link-icon-color').value = iconColor;
+    document.getElementById('link-icon-color-text').value = link.iconColor || '';
+
+    // Sync color inputs
+    const colorPicker = document.getElementById('link-icon-color');
+    const colorText = document.getElementById('link-icon-color-text');
+
+    colorPicker.onchange = () => {
+        colorText.value = colorPicker.value;
+        updateIconPreview(document.getElementById('link-icon').value, colorPicker.value);
+    };
+
+    colorText.onchange = () => {
+        if (/^#[0-9A-Fa-f]{6}$/.test(colorText.value)) {
+            colorPicker.value = colorText.value;
+            updateIconPreview(document.getElementById('link-icon').value, colorText.value);
+        }
+    };
+
     // Render icon grid
     renderIconGrid(link.icon || 'fa-link');
 
     // Update preview
-    updateIconPreview(link.icon || 'fa-link');
+    updateIconPreview(link.icon || 'fa-link', iconColor);
 
     // Show/hide delete button (hide for new links)
     const deleteBtn = document.getElementById('modal-delete-btn');
@@ -415,6 +428,109 @@ function deleteCurrentLink() {
     }
 }
 
+// ============================================================
+// SEPARATOR MODAL
+// ============================================================
+let editingSeparatorIndex = null;
+const separatorModal = document.getElementById('separator-modal');
+
+function openSeparatorModal(index) {
+    editingSeparatorIndex = index;
+    const separator = index >= 0 ? state.links[index] : { type: 'separator', title: '', themeColor: '' };
+
+    // Set modal title
+    document.getElementById('separator-modal-title').textContent = index >= 0 ? 'Edit Section' : 'Add Section';
+
+    // Fill form
+    document.getElementById('separator-title').value = separator.title || '';
+
+    const defaultColor = '#2f81f7';
+    const themeColor = separator.themeColor || defaultColor;
+    document.getElementById('separator-color').value = themeColor;
+    document.getElementById('separator-color-text').value = separator.themeColor || '';
+
+    // Show/hide delete button
+    const deleteBtn = document.getElementById('separator-delete-btn');
+    if (deleteBtn) {
+        deleteBtn.style.display = index >= 0 ? 'block' : 'none';
+    }
+
+    // Setup color sync
+    const colorPicker = document.getElementById('separator-color');
+    const colorText = document.getElementById('separator-color-text');
+
+    colorPicker.onchange = () => {
+        colorText.value = colorPicker.value;
+        updateSeparatorPreview();
+    };
+
+    colorText.onchange = () => {
+        if (/^#[0-9A-Fa-f]{6}$/.test(colorText.value)) {
+            colorPicker.value = colorText.value;
+        }
+        updateSeparatorPreview();
+    };
+
+    document.getElementById('separator-title').oninput = updateSeparatorPreview;
+
+    updateSeparatorPreview();
+    separatorModal.classList.add('active');
+}
+
+function closeSeparatorModal() {
+    separatorModal.classList.remove('active');
+    editingSeparatorIndex = null;
+}
+
+function updateSeparatorPreview() {
+    const title = document.getElementById('separator-title').value || 'SECTION TITLE';
+    const colorText = document.getElementById('separator-color-text').value;
+    const color = colorText && /^#[0-9A-Fa-f]{6}$/.test(colorText) ? colorText : '#2f81f7';
+
+    const preview = document.getElementById('separator-preview');
+    const lines = preview.querySelectorAll('span:not(#separator-preview-text)');
+    lines.forEach(line => line.style.background = color);
+
+    const textEl = document.getElementById('separator-preview-text');
+    textEl.textContent = title.toUpperCase();
+    textEl.style.color = color;
+}
+
+function resetSeparatorColor() {
+    document.getElementById('separator-color').value = '#2f81f7';
+    document.getElementById('separator-color-text').value = '';
+    updateSeparatorPreview();
+}
+
+function saveSeparator() {
+    const title = document.getElementById('separator-title').value.trim();
+    const colorText = document.getElementById('separator-color-text').value.trim();
+
+    const separator = { type: 'separator', title: title };
+    if (colorText && /^#[0-9A-Fa-f]{6}$/.test(colorText)) {
+        separator.themeColor = colorText;
+    }
+
+    if (editingSeparatorIndex >= 0) {
+        state.links[editingSeparatorIndex] = separator;
+    } else {
+        state.links.push(separator);
+    }
+
+    closeSeparatorModal();
+    renderGrid();
+}
+
+function deleteCurrentSeparator() {
+    if (editingSeparatorIndex !== null && editingSeparatorIndex >= 0) {
+        if (confirm('Delete this section?')) {
+            state.links.splice(editingSeparatorIndex, 1);
+            closeSeparatorModal();
+            renderGrid();
+        }
+    }
+}
+
 function renderIconGrid(selectedIcon) {
     const grid = document.getElementById('icon-grid');
     grid.innerHTML = '';
@@ -427,23 +543,33 @@ function renderIconGrid(selectedIcon) {
             document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('selected'));
             div.classList.add('selected');
             document.getElementById('link-icon').value = icon;
-            updateIconPreview(icon);
+            const currentColor = document.getElementById('link-icon-color').value;
+            updateIconPreview(icon, currentColor);
         };
         grid.appendChild(div);
     });
 }
 
-function updateIconPreview(icon) {
+function updateIconPreview(icon, color) {
+    const colorStyle = color ? `style="color: ${color}"` : '';
     document.getElementById('icon-preview').innerHTML = `
-        <i class="fa-solid ${icon}"></i>
+        <i class="fa-solid ${icon}" ${colorStyle}></i>
         <span>${icon}</span>
     `;
+}
+
+function resetIconColor() {
+    document.getElementById('link-icon-color').value = '#2f81f7';
+    document.getElementById('link-icon-color-text').value = '';
+    updateIconPreview(document.getElementById('link-icon').value, '#2f81f7');
 }
 
 function saveLink() {
     const label = document.getElementById('link-label').value.trim();
     const url = document.getElementById('link-url').value.trim();
     const icon = document.getElementById('link-icon').value.trim() || 'fa-link';
+    const iconColorText = document.getElementById('link-icon-color-text').value.trim();
+    const iconColor = iconColorText || null; // Only save if custom color is set
 
     if (!label) {
         alert('Label is required');
@@ -451,6 +577,9 @@ function saveLink() {
     }
 
     const link = { label, url, icon };
+    if (iconColor) {
+        link.iconColor = iconColor;
+    }
 
     if (editingIndex >= 0) {
         state.links[editingIndex] = link;

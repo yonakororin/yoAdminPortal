@@ -154,10 +154,15 @@
         }
         
         .link-card:hover {
-            border-color: var(--primary);
+            border-color: var(--theme-color, var(--primary));
             background: rgba(47, 129, 247, 0.1);
             transform: translateY(-4px);
             box-shadow: 0 10px 30px rgba(47, 129, 247, 0.2);
+        }
+        
+        .link-card.themed:hover {
+            background: color-mix(in srgb, var(--theme-color) 15%, transparent);
+            box-shadow: 0 10px 30px color-mix(in srgb, var(--theme-color) 30%, transparent);
         }
         
         .link-card .icon {
@@ -216,23 +221,24 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            margin: 1.5rem 0 1rem 0;
+            margin: 2rem 0 1rem 0;
             color: var(--text-muted);
-            font-size: 0.9rem;
-            font-weight: 600;
+            font-size: 1.2rem;
+            font-weight: 700;
         }
         
         .separator-with-title::before,
         .separator-with-title::after {
             content: '';
             flex: 1;
-            height: 1px;
-            background: var(--border);
-            opacity: 0.5;
+            height: 2px;
+            background: var(--separator-color, var(--primary));
         }
         
         .separator-with-title span {
-            color: var(--text);
+            color: var(--separator-color, var(--primary));
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
     </style>
 </head>
@@ -335,13 +341,20 @@
             }
 
             // 3. Render
+            let currentThemeColor = null; // Track current section's theme color
             processedLinks.forEach(link => {
                 if (!link.visible) return;
 
                 if (link.type === 'separator') {
+                    // Update current section theme color
+                    currentThemeColor = link.themeColor || null;
+                    
                     const sep = document.createElement('div');
                     if (link.title) {
                         sep.className = 'separator-with-title';
+                        if (currentThemeColor) {
+                            sep.style.setProperty('--separator-color', currentThemeColor);
+                        }
                         sep.innerHTML = `<span>${link.title}</span>`;
                     } else {
                         sep.className = 'separator-line';
@@ -354,12 +367,21 @@
                 card.className = 'link-card';
                 card.href = link.url || '#';
                 
+                // Apply section theme color to card
+                if (currentThemeColor) {
+                    card.style.setProperty('--theme-color', currentThemeColor);
+                    card.classList.add('themed');
+                }
+                
                 // Use a derived target name to reuse existing tabs
                 const targetName = 'yoPortal_' + (link.url || '').replace(/[^a-zA-Z0-9]/g, '');
                 card.target = targetName;
                 
+                // Icon color: use link-specific color, or fall back to theme color
+                const iconColor = link.iconColor || currentThemeColor || null;
+                const iconStyle = iconColor ? `style="color: ${iconColor}"` : '';
                 card.innerHTML = `
-                    <i class="fa-solid ${link.icon || 'fa-link'} icon"></i>
+                    <i class="fa-solid ${link.icon || 'fa-link'} icon" ${iconStyle}></i>
                     <span class="label">${link.label || 'Link'}</span>
                 `;
                 grid.appendChild(card);
