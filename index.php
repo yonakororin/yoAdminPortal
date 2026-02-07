@@ -1,4 +1,4 @@
 <?php
-header("Location: builder.php");
+header("Location: viewer.php");
 exit;
 ?>
