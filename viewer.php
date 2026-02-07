@@ -319,7 +319,12 @@
                 if (link.type === 'separator') {
                     return { ...link, type: 'separator', visible: true }; // Keep title property
                 }
-                const isVisible = isAdmin || perms.includes(link.url);
+                const isVisible = isAdmin || perms.includes(link.url) || (() => {
+                    try {
+                        const abs = new URL(link.url, window.location.href).href;
+                        return perms.includes(abs) || perms.some(p => abs.startsWith(p) && p.endsWith('*'));
+                    } catch(e) { return false; }
+                })();
                 return { ...link, visible: isVisible };
             });
 
